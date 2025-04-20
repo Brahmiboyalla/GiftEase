@@ -69,3 +69,11 @@ python manage.py createsuperuser
 
 # 6. Run the development server
 python manage.py runserver
+```
+
+---
+
+## User Guide
+
+### Create an account with valid email address for smooth experience
+### Create an email account for the platform and update the settings file at `core/settings.py`
