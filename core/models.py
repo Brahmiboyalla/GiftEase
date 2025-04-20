@@ -116,12 +116,6 @@ class PaymentMethod(models.Model):
     def __str__(self):
         return f"{self.get_method_display()} - {self.user.username}"
 
-
-# class GiftCardSale(models.Model):
-#     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
-#     giftCard = models.ForeignKey(GiftCard, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
-
     
 class SalePayment(models.Model):
     WALLET_CHOICES = [

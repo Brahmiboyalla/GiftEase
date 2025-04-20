@@ -59,6 +59,11 @@ def is_valid_gift_card(brand, card_number):
     return prefix_match and length_match
 
 class TransactionForm(forms.ModelForm):
+    brand = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label='Brand',
+    )
     card_number = forms.CharField(
         max_length=19,  # Includes hyphens
         validators=[RegexValidator(r'^[A-Za-z0-9-]{12,19}$', 'Enter a valid card number (12-19 characters, alphanumeric + hyphens).')],
@@ -67,9 +72,8 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['brand','card_number', 'card_holder', 'expiry_date', 'pin', 'amount']
+        fields = ['card_number', 'card_holder', 'expiry_date', 'pin', 'amount']
         widgets = {
-            'brand': forms.TextInput(attrs={'class': 'form-control','readonly': True}),
             'card_holder': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Card Holder Name'}),
             'expiry_date': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'MM/YY'}),
             'pin': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'PIN', 'maxlength': '4'}),

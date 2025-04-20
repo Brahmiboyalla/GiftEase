@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
 from django.contrib import messages
 from .forms import CustomUserCreationForm, GiftCardForm, ReceivePaymentForm, SalePaymentForm, TransactionForm, PaymentMethodForm
 from .models import GiftCard, Transaction, Payment, SalePayment
@@ -43,9 +45,16 @@ def profile(request):
     return render(request, 'profile.html', {'orders': orders, 'payments': payments})
 
 def orders(request):
-    soldOrders = Transaction.objects.filter(user = request.user)
-    print(soldOrders, 'orwed')
-    return render(request, 'orders.html', { 'sold_orders': soldOrders})
+    user_transactions = Transaction.objects.filter(user=request.user)
+
+    sold_orders = user_transactions.filter(transaction_type='SELL')
+    bought_orders = user_transactions.filter(transaction_type='BUY')
+
+    return render(request, 'orders.html', {
+        'sold_orders': sold_orders,
+        'bought_orders': bought_orders,
+    })
+
 
 def add_payment_method(request):
     if request.method == 'POST':
@@ -126,6 +135,14 @@ def sell_gift_card(request):
                         payment.save()
                         messages.success(request, "Payment successful! 🎉")
 
+                        send_mail(
+                            subject='🎉 Payment Confirmation - GiftCard Platform',
+                            message=f"Hi {request.user.name},\n\nYour payment for the gift card has been successfully processed!\n\nTransaction ID: {last_transaction.id}\nAmount: ₹{payment.amount}\n\nThank you for using our platform!\n\n- GiftEase Team",
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[request.user.email],
+                            fail_silently=False,
+                        )
+
                         return redirect('success_page')
                         # last_transaction.payment_id = payment.id
                         # last_transaction.save(update_fields=['payment_id'])
@@ -139,30 +156,40 @@ def sell_gift_card(request):
             elif 'card_number' in request.POST:
                 transaction_form = TransactionForm(request.POST)
                 last_gift_card = GiftCard.objects.filter(seller=request.user).order_by('-created_at').first()
-                if transaction_form.is_valid():
-                    transaction = transaction_form.save(commit=False)
-                    transaction.user = request.user 
 
-                    # Attach Transaction to Last Gift Card
-                    if last_gift_card:
+                if transaction_form.is_valid() and last_gift_card:
+                    try:
+                        transaction = transaction_form.save(commit=False)
+                        transaction.transaction_type = 'BUY'
+                        transaction.user = request.user
                         transaction.gift_card = last_gift_card
-                        transaction.save() 
+                        transaction.save()
 
                         last_gift_card.transaction_id = str(transaction.id)
                         last_gift_card.save(update_fields=['transaction_id'])
 
                         messages.success(request, "Transaction recorded successfully! Proceed to payment.")
 
-                    payment_form = ReceivePaymentForm(initial={'amount': transaction.amount})
-                    return render(request, 'sell_gift_card.html', {
-                        'form': payment_form,
-                        'is_payment': True,
-                        'amount': transaction.amount
-                    })
+                        payment_form = ReceivePaymentForm(initial={'amount': transaction.amount})
+                        return render(request, 'sell_gift_card.html', {
+                            'form': payment_form,
+                            'is_payment': True,
+                            'amount': transaction.amount
+                        })
+
+                    except Exception as e:
+                        # Just in case anything fails mid-way, rollback
+                        last_gift_card.delete()
+                        messages.error(request, f"Error during transaction. Rolled back. ({e})")
+                        return redirect('sell_gift_card')
+
                 else:
-                    messages.error(request, "Error processing the transaction. Rolling back...")
-                    GiftCard.objects.filter(id=last_gift_card.id).delete()
+                    # Validation or gift card missing
+                    if last_gift_card:
+                        last_gift_card.delete()
+                    messages.error(request, "Form is invalid or gift card missing. Rolled back.")
                     return redirect('sell_gift_card')
+
             else:
                 gift_form = GiftCardForm(request.POST, request.FILES)
                 print(gift_form.data)
