@@ -92,7 +92,7 @@ brand_margins = {
 }
 def buy_gift_card(request):
 
-    gift_cards = GiftCard.objects.all()
+    gift_cards = GiftCard.objects.filter(is_active = True)
 
     context = {
         "gift_cards": gift_cards,
@@ -160,7 +160,6 @@ def sell_gift_card(request):
                 if transaction_form.is_valid() and last_gift_card:
                     try:
                         transaction = transaction_form.save(commit=False)
-                        transaction.transaction_type = 'BUY'
                         transaction.user = request.user
                         transaction.gift_card = last_gift_card
                         transaction.save()
@@ -222,28 +221,56 @@ def sell_gift_card(request):
     
 
 def initiate_payment(request, sale_id, selling_price):
-    gift_card_sale = get_object_or_404(GiftCard, id=sale_id)
+    gift_card = get_object_or_404(GiftCard, id=sale_id)
+    # pre‑populate the amount field
     form = SalePaymentForm(initial={'amount': selling_price})
 
     if request.method == 'POST':
         form = SalePaymentForm(request.POST)
         if form.is_valid():
-            payment = form.save(commit=False)
-            payment.user = request.user
-            payment.gift_card_sale = gift_card_sale
-            payment.amount = selling_price
-            payment.status = 'PENDING'
-            payment.save()
+            try:
+                # 1) Save the payment
+                payment = form.save(commit=False)
+                payment.user = request.user
+                payment.gift_card = gift_card
+                payment.amount = selling_price
+                payment.status = 'PENDING'
 
-            messages.success(request, "Payment initiated successfully!")
-            return redirect('sale_success')
+                # 2) Create the BUY transaction
+                try:
+                    # fetch the original SELL transaction
+                    sell_tx = Transaction.objects.get(id=gift_card.transaction_id)
+                except (Transaction.DoesNotExist, TypeError, ValueError):
+                    messages.error(request, "Original sale record not found; purchase not recorded.")
+                    return redirect('dashboard')
+
+                # now record the BUY
+                Transaction.objects.create(
+                    user         = request.user,
+                    gift_card    = gift_card,
+                    transaction_type = 'BUY',
+                    card_number  = sell_tx.card_number,
+                    card_holder  = sell_tx.card_holder,
+                    expiry_date  = sell_tx.expiry_date,
+                    pin          = sell_tx.pin,
+                    amount       = selling_price
+                )
+                gift_card.is_active = False
+                gift_card.save(update_fields=['is_active'])
+                payment.save()
+                messages.success(request, "Payment & purchase recorded successfully!")
+                return redirect('sale_success')
+            except Exception as e:
+                messages.error(request, "Payment failed. Please correct the errors below.", str(e))
         else:
-            messages.error(request, "Payment failed. Please try again.")
+            messages.error(request, "Payment failed. Please correct the errors below.")
     
-    else:
-        form = SalePaymentForm(initial={'amount': selling_price})
-    
-    return render(request, 'sale_payment.html', {'form': form, 'gift_card': gift_card_sale, 'selling_price': selling_price})
+    return render(request, 'sale_payment.html', {
+        'form': form,
+        'gift_card': gift_card,
+        'selling_price': selling_price
+    })
+
 
 @login_required
 def get_payment_methods(request, id):

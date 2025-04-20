@@ -41,6 +41,7 @@ class GiftCard(models.Model):
     value = models.DecimalField(max_digits=10, decimal_places=2)
     buy_back_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
     transaction_id = models.CharField(max_length=50, blank=True, null=True)
 
     def get_default_image(self):
@@ -62,8 +63,8 @@ class Transaction(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     gift_card = models.ForeignKey(GiftCard, on_delete=models.CASCADE)
-    transaction_type = models.CharField(max_length=4, choices=TRANSACTION_TYPE_CHOICES)
-    card_number = models.CharField(max_length=16, unique=True)
+    transaction_type = models.CharField(max_length=4, choices=TRANSACTION_TYPE_CHOICES, default='SELL')
+    card_number = models.CharField(max_length=16)
     card_holder = models.CharField(max_length=100)
     expiry_date = models.CharField(max_length=5, default="12/25")  # Format: MM/YY
     pin = models.CharField(max_length=20, blank=True, null=True)  # Assuming it's a 4-digit PIN
@@ -89,7 +90,6 @@ class Payment(models.Model):
 
 class PaymentMethod(models.Model):
     PAYMENT_METHODS = [
-        ('UPI', 'UPI'),
         ('DEBIT_CARD', 'Debit Card'),
         ('CREDIT_CARD', 'Credit Card'),
         ('NETBANKING', 'Net Banking')
@@ -142,6 +142,7 @@ class SalePayment(models.Model):
     ]
 
     method = models.CharField(max_length=50, choices=PAYMENT_METHODS, verbose_name="Payment Method")
+    gift_card = models.ForeignKey(GiftCard, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sale_payments')
     status = models.CharField(max_length=50, choices=PAYMENT_STATUS, default='PENDING', verbose_name="Payment Status")
