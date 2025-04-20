@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container min-vh-100 d-flex justify-content-center align-items-center">
+    <div class="card shadow-lg p-4 text-center" style="max-width: 500px; width: 100%;">
+        <h3 class="text-success">✅ Payment Successful!</h3>
+        <p>Your payment has been completed successfully.</p>
+        <p>Redirecting to your dashboard...</p>
+    </div>
+</div>
+
+<script>
+    setTimeout(function() {
+        window.location.href = "{% url 'dashboard' %}";
+    }, 3000);
+</script>
+{% endblock %}

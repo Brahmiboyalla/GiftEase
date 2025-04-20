@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Bootstrap container with flex center -->
+{% if messages %}
+    <div id="snackbar" class="fixed bottom-5 right-5 z-50 px-4 py-3 text-white rounded shadow-lg hidden"></div>
+
+    <script>
+        function showSnackbar(message, type) {
+            let snackbar = document.getElementById('snackbar');
+            snackbar.innerText = message;
+            snackbar.classList.remove('hidden');
+            snackbar.classList.add('opacity-100', 'transition', 'duration-300');
+
+            if (type === 'success') {
+                snackbar.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                snackbar.classList.add('bg-red-500');
+            }
+
+            setTimeout(() => {
+                snackbar.classList.add('hidden');
+            }, 4000);
+        }
+
+        {% for message in messages %}
+            {% if message.tags == "success" %}
+                showSnackbar("{{ message }}", "success");
+            {% elif message.tags == "error" %}
+                showSnackbar("{{ message }}", "error");
+            {% endif %}
+        {% endfor %}
+    </script>
+{% endif %}
+
+<div class="d-flex justify-content-center align-items-center vh-100 p-4">
+    <div class="card shadow-lg border-light" style="max-width: 600px; width: 100%;">
+        <div class="card-body bg-light text-dark p-5 rounded">
+            <h2 class="text-center fw-bold text-dark mb-4">Sell a Gift Card</h2>
+
+            {% if is_payment %}
+                <h2 class="text-center fw-bold text-dark mb-4">Request Payment</h2>
+                <form action="{% url 'sell_gift_card' %}" method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Request Payment</button>
+                </form>
+
+            {% elif is_transaction %}
+                <h2 class="text-center fw-bold text-dark mb-4">Enter Card Details</h2>
+                <form action="{% url 'sell_gift_card' %}" method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success w-100 mt-3">Proceed to Payment</button>
+                </form>
+            {% else %}
+                <form action="{% url 'sell_gift_card' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Brand Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gift Card Brand</label>
+                        <select id="brandSelect" name="brand" class="form-control" required>
+                            <option value="">-- Select Brand --</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Flipkart">Flipkart</option>
+                            <option value="Myntra">Myntra</option>
+                            <option value="Walmart">Walmart</option>
+                            <option value="Target">Target</option>
+                            <option value="eBay">eBay</option>
+                            <option value="Starbucks">Starbucks</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="text-center mb-3">
+                        <img id="previewImage" src="/static/images/giftcards/default.png" alt="Gift Card Preview" class="img-fluid rounded shadow" style="max-height: 200px;">
+                    </div>
+
+                    <!-- Upload Custom Image -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload Custom Image</label>
+                        <input type="file" name="background_image" class="form-control" id="imageUpload">
+                    </div>
+
+                    <!-- Amount Field -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gift Card Value ($)</label>
+                        <input type="number" class="form-control" name="value" id="value" required>
+                    </div>
+
+                    <!-- BuyBack Field (Auto-Calculated) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">BuyBack Price ($)</label>
+                        <input type="number" name="buy_back_price" id="buy_back_price" class="form-control" readonly required>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold mt-4">
+                        Proceed
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Brand-to-margin mapping (in percentage)
+    const brandMargins = {
+        amazon: 5,
+        flipkart: 4,
+        myntra: 6,
+        walmart: 7,
+        target: 3,
+        ebay: 8,
+        starbucks: 10
+    };
+
+    // Function to update gift card image
+    document.getElementById('brandSelect').addEventListener('change', function() {
+        let selectedBrand = this.value.toLowerCase();
+        let imagePath = selectedBrand ? `/static/images/giftcards/${selectedBrand}.png` : '/static/images/giftcards/default.png';
+        document.getElementById('previewImage').src = imagePath;
+    });
+
+    // Function to update BuyBack Price
+    function updateBuyBackPrice() {
+        let brand = document.getElementById('brandSelect').value.toLowerCase();
+        let value = parseFloat(document.getElementById('value').value);
+        
+        if (!value || value <= 0) {
+            document.getElementById('buy_back_price').value = "";
+            return;
+        }
+
+        let margin = brandMargins[brand] || 5;  // Default margin: 5% if brand not found
+        let buybackPrice = value - (value * (margin / 100));
+
+        document.getElementById('buy_back_price').value = buybackPrice.toFixed(2);
+    }
+
+    // Listen for changes in brand or amount
+    document.getElementById('value').addEventListener('input', updateBuyBackPrice);
+    document.getElementById('brandSelect').addEventListener('change', updateBuyBackPrice);
+
+    // Function to update preview image if a custom file is chosen
+    document.getElementById('imageUpload').addEventListener('change', function(event) {
+        let reader = new FileReader();
+        reader.onload = function() {
+            document.getElementById('previewImage').src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    });
+
+</script>
+
+{% endblock %}

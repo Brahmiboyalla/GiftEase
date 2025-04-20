@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid d-flex w-100 justify-content-center align-items-center bg-gradient vh-60">
+    <div class="row g-2 justify-content-center flex-items">
+        
+        <!-- Buy a Gift Card -->
+        <div class="col-md-6">
+            <a href="{% url 'buy_gift_card' %}" class="gift-card-btn buy-card shadow-md">
+                <i class="fas fa-shopping-cart fa-2x"></i>
+                <h3>Buy a Gift Card</h3>
+                <p>Find the best deals on gift cards!</p>
+            </a>
+        </div>
+
+        <!-- Sell a Gift Card -->
+        <div class="col-md-6">
+            <a href="{% url 'sell_gift_card' %}" class="gift-card-btn sell-card shadow-md">
+                <i class="fas fa-dollar-sign fa-2x"></i>
+                <h3>Sell a Gift Card</h3>
+                <p>Turn your unused gift cards into cash!</p>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .gift-card-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 400px;
+        text-align: center;
+        border-radius: 100%;
+        text-decoration: none;
+        font-weight: bold;
+        color: gold;
+        padding: 10px;
+        margin: 50px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .gift-card-btn i {
+        margin-bottom: 5px;
+    }
+    .gift-card-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    .buy-card {
+        background: linear-gradient(135deg, #007bff,rgb(240, 240, 240));
+        margin: 10px;
+    }
+    .sell-card {
+        background: linear-gradient(135deg,rgb(226, 16, 16), #20c997);
+        margin: 10px;
+    }
+</style>
+
+{% endblock %}

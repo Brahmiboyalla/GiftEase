@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %} 
+
+{% block content %}
+<div class="min-h-screen d-flex flex-wrap justify-content-center align-items-center bg-gray-100 p-6">
+
+    {% if gift_cards %}
+        <div class="d-flex flex-wrap gap-4 justify-content-center">
+            {% for card in gift_cards %}
+                <div class="card shadow-sm border-0 rounded-lg" style="width: 18rem;">
+                    <!-- Gift Card Image -->
+                    <img src="{{ card.background_image.url }}" 
+                        alt="{{ card.brand }}" 
+                        class="card-img-top rounded-top" 
+                        style="width: 100%; object-fit: cover;">
+
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-primary">{{ card.brand }}</h5>
+                        <p class="card-text text-muted">
+                            Value: <span class="fw-bold">${{ card.value }}</span>
+                        </p>
+
+                        <!-- Calculate Selling Price -->
+                        {% with margin_multiplier=brand_margins|get_item:card.brand %}
+                            {% with margin_amount=card.buy_back_price|mul:margin_multiplier|div:100 %}
+                                {% with selling_price=card.buy_back_price|add:margin_amount %}
+                                <a href="{% url 'buy_gift_card' card.id selling_price %}" class="btn btn-primary w-100 fw-bold">
+                                    Buy Now at ${{ selling_price|floatformat:2 }}
+                                </a>
+                                {% endwith %}
+                            {% endwith %}
+                        {% endwith %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-dark text-lg mt-6 text-center">No gift cards available at the moment.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
+

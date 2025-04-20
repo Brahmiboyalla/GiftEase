@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-400 to-green-600">
+    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+        <h2 class="text-2xl font-bold text-green-700">Payment Request Successful! 🎉</h2>
+        <p class="text-gray-600 mt-2">Your payment will be credited soon (1-2 Working Days).</p>
+        <p class="text-gray-500 text-sm mt-1">Redirecting you to the dashboard...</p>
+        
+        <!-- Animated Checkmark -->
+        <div class="mt-4">
+            <svg class="w-16 h-16 text-green-500 mx-auto animate-bounce" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+
+        <p class="text-gray-400 text-sm mt-3">If not redirected, <a href="{% url 'dashboard' %}" class="text-blue-500 underline">click here</a>.</p>
+    </div>
+</div>
+
+<!-- Auto Redirect After 3 Seconds -->
+<script>
+    setTimeout(function () {
+        window.location.href = "{% url 'dashboard' %}";
+    }, 3000); // 3 seconds
+</script>
+{% endblock %}

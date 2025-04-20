@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-lg border-light rounded-lg p-4">
+        
+        <!-- Profile Header -->
+        <div class="d-flex align-items-center border-bottom pb-3">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                 style="width: 80px; height: 80px; font-size: 32px; font-weight: bold;">
+                {{ user.name|first|upper }}
+            </div>
+            <div class="ms-3">
+                <h2 class="fw-bold text-dark">{{ user.name }}</h2>
+                <p class="text-muted mb-1"><i class="bi bi-envelope"></i> {{ user.email }}</p>
+                <p class="text-muted"><i class="bi bi-telephone"></i> {{ user.contact }}</p>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="mt-4">
+            <h4 class="fw-semibold text-primary"><i class="bi bi-receipt"></i> Orders</h4>
+            <p class="text-muted">View your bought and sold gift cards.</p>
+            <a href="{% url 'orders' %}" 
+               class="btn btn-outline-primary w-100 mt-2">
+                View Orders
+            </a>
+        </div>
+
+        <!-- Payment Methods Section -->
+        <div class="mt-4">
+            <h4 class="fw-semibold text-success"><i class="bi bi-credit-card"></i> Payment Methods</h4>
+
+            {% if payments %}
+                <ul class="list-group mt-3">
+                    {% for method in payments %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm">
+                            <div>
+                                <strong>{{ method.bank_name }}</strong> - **** {{ method.account_number|slice:"-4:" }}
+                            </div>
+                            <span class="text-muted small">{{ method.ifsc_code }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted mt-2">No payment methods added yet.</p>
+            {% endif %}
+            
+            <!-- Add Payment Button -->
+            <a href="{% url 'add_payment_method' %}" 
+               class="btn btn-outline-success w-100 mt-3">
+                Add New Payment Method
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

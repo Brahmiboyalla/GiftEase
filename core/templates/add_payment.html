@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center min-vh-50">
+    <div class="card shadow-lg p-4 w-100 max-w-md">
+        <h2 class="text-center text-2xl font-bold mb-4">Add Payment Method</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Payment Mode Selection -->
+            <div class="mb-3">
+                <label class="form-label">Payment Mode</label>
+                <select name="method" class="form-control" id="paymentMethod" onchange="toggleFields()">
+                    <option value="">-- Select Payment Mode --</option>
+                    <option value="UPI">UPI</option>
+                    <option value="DEBIT_CARD">Debit Card</option>
+                    <option value="CREDIT_CARD">Credit Card</option>
+                    <option value="NETBANKING">Net Banking</option>
+                </select>
+            </div>
+
+            <!-- UPI ID (Visible only for UPI) -->
+            <div class="mb-3" id="upiField" style="display: none;">
+                <label class="form-label">UPI ID</label>
+                <input type="text" name="upi_id" class="form-control" placeholder="Enter UPI ID">
+            </div>
+
+            <!-- Card Details (Visible only for Debit/Credit Card) -->
+            <div id="cardFields" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label">Card Number</label>
+                    <input type="text" name="card_number" class="form-control" placeholder="Enter Card Number">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cardholder Name</label>
+                    <input type="text" name="card_holder_name" class="form-control" placeholder="Enter Cardholder Name">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Expiry Date</label>
+                    <input type="text" name="expiry_date" class="form-control" placeholder="MM/YY">
+                </div>
+            </div>
+
+            <!-- Net Banking Details (Visible only for Net Banking) -->
+            <div id="netBankingFields" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label">Bank Name</label>
+                    <input type="text" name="bank_name" class="form-control" placeholder="Enter Bank Name">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" name="account_number" class="form-control" placeholder="Enter Account Number">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">IFSC Code</label>
+                    <input type="text" name="ifsc_code" class="form-control" placeholder="Enter IFSC Code">
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-100 btn btn-success mt-3">Save Payment Method</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleFields() {
+        var paymentMethod = document.getElementById("paymentMethod").value;
+        
+        // Hide all fields initially
+        document.getElementById("upiField").style.display = "none";
+        document.getElementById("cardFields").style.display = "none";
+        document.getElementById("netBankingFields").style.display = "none";
+
+        // Show relevant fields based on selection
+        if (paymentMethod === "UPI") {
+            document.getElementById("upiField").style.display = "block";
+        } else if (paymentMethod === "DEBIT_CARD" || paymentMethod === "CREDIT_CARD") {
+            document.getElementById("cardFields").style.display = "block";
+        } else if (paymentMethod === "NETBANKING") {
+            document.getElementById("netBankingFields").style.display = "block";
+        }
+    }
+</script>
+
+{% endblock %}

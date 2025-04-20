@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="MuiContainer-root mt-20">
+    <div class="MuiPaper-root MuiPaper-elevation6 MuiPaper-rounded p-8" style="padding: 32px; border-radius: 8px; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <Avatar style="margin: 4px; padding: 10px; border-radius: 50px; background-color:hsl(260, 11.10%, 94.70%);">
+                <span class="material-icons p-40">person_add</span>
+            </Avatar>
+            <h2 class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom text-center" style="font-weight: 700; color: #3f51b5;">Register</h2>
+        </div>
+        <form method="post" novalidate class="space-y-4" style="width: 100%; margin-top: 8px; items-center">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="MuiFormControl-root MuiTextField-root lg flex items-center" style="margin-bottom: 16px; width: 100%;">
+                    <label class="MuiFormLabel-root  text-left" style="font-weight: 500; color: #555;" style="margin-bottom: 16px;">{{ field.label_tag }}</label>
+                    <div class="w-full p-2 border border-gray-300 rounded m-2">
+                        {{ field }}
+                        {% comment %} {% if field.help_text %}
+                            <p class="MuiFormHelperText-root text-xs bg-gray-200 p-2 rounded mt-1" style="font-size: 12px; color: #888;">{{ field.help_text }}</p>
+                        {% endif %} {% endcomment %}
+                    </div>
+                </div>
+            {% endfor %}
+            <button class="btn btn-primary w-100 py-2 fw-bold mt-4" style="background-color: #3f51b5; align-items: center; color: white; padding: 12px 24px; border-radius: 4px; font-weight: 500; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#303f9f'" onmouseout="this.style.backgroundColor='#3f51b5'">Register</button>
+        </form>
+        <p class="MuiTypography-root MuiTypography-body2 text-center mt-4" style="font-size: 14px; color: #555;">
+            Already have an account? <a href="{% url 'login' %}" class="MuiLink-root" style="color: #3f51b5; text-decoration: none;">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
